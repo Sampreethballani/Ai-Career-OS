@@ -2,9 +2,22 @@ import sys
 import os
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
+import subprocess
+from apscheduler.schedulers.background import BackgroundScheduler
 from flask import Flask, render_template, request
 from src.utils.db import init_db, Opportunity
 from src.config_manager import config_manager
+
+def run_career_tracker():
+    print("⏰ Background Agent Triggered: Running main tracking script...")
+    try:
+        subprocess.Popen(["python", "src/main.py"])
+    except Exception as e:
+        print(f"❌ Error running tracker: {e}")
+
+scheduler = BackgroundScheduler()
+scheduler.add_job(func=run_career_tracker, trigger="interval", hours=6)
+scheduler.start()
 
 app = Flask(__name__)
 Session = init_db(config_manager.get("DATABASE_URL"))

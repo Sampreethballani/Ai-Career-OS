@@ -9,3 +9,4 @@ pydantic
 pytest
 flask
 gunicorn
+apscheduler==3.10.4
