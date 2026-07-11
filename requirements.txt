@@ -1,0 +1,11 @@
+python-dotenv
+requests
+beautifulsoup4
+feedparser
+google-generativeai
+schedule
+sqlalchemy
+pydantic
+pytest
+flask
+gunicorn
