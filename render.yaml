@@ -17,7 +17,7 @@ services:
   - type: cron
     name: ai-career-cron
     runtime: python
-    schedule: "0 */6 * * *"
+    schedule: "0 */6 * * *" # Runs every 6 hours
     buildCommand: pip install -r requirements.txt
     startCommand: python src/main.py
     envVars:
