@@ -1,26 +1,35 @@
 import sys
 import os
+import threading
+import subprocess
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-import subprocess
-from apscheduler.schedulers.background import BackgroundScheduler
-from flask import Flask, render_template, request
+from flask import Flask, render_template, request, jsonify
 from src.utils.db import init_db, Opportunity
 from src.config_manager import config_manager
 
+app = Flask(__name__)
+Session = init_db(config_manager.get("DATABASE_URL"))
+
+PYTHON = sys.executable
+
 def run_career_tracker():
-    print("⏰ Background Agent Triggered: Running main tracking script...")
+    print("⏰ Triggered: Running main tracking script...")
     try:
-        subprocess.Popen(["python", "src/main.py"])
+        subprocess.Popen([PYTHON, "src/main.py"])
     except Exception as e:
         print(f"❌ Error running tracker: {e}")
 
-scheduler = BackgroundScheduler()
-scheduler.add_job(func=run_career_tracker, trigger="interval", hours=6)
-scheduler.start()
-
-app = Flask(__name__)
-Session = init_db(config_manager.get("DATABASE_URL"))
+# --- Background scheduler (starts after Flask is ready) ---
+scheduler = None
+try:
+    from apscheduler.schedulers.background import BackgroundScheduler
+    scheduler = BackgroundScheduler()
+    scheduler.add_job(func=run_career_tracker, trigger="interval", hours=6)
+    scheduler.start()
+    print("✅ Background scheduler started (every 6 hours)")
+except Exception as e:
+    print(f"⚠️ Scheduler not available: {e}")
 
 @app.route("/")
 def index():
@@ -112,6 +121,16 @@ def stats():
         avg_score=round(avg, 1),
         src_counts=src_counts,
     )
+
+@app.route("/health")
+def health():
+    return jsonify({"status": "ok"})
+
+@app.route("/trigger-collect", methods=["POST"])
+def trigger_collect():
+    thread = threading.Thread(target=run_career_tracker, daemon=True)
+    thread.start()
+    return jsonify({"status": "started", "message": "Collector triggered. Refresh in a few minutes."})
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))

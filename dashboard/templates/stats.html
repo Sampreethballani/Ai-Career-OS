@@ -33,8 +33,33 @@ h2 { font-size: 18px; margin-bottom: 16px; color: #333; }
 <nav>
   <a href="/">Dashboard</a>
   <a href="/stats">Stats</a>
+  <button id="runNowBtn" onclick="runNow()" style="background:#4fc3f7;color:#1a1a2e;border:none;padding:6px 16px;border-radius:6px;cursor:pointer;font-weight:600;font-size:13px;">Run Now</button>
+  <span id="runStatus" style="font-size:12px;color:#4fc3f7;margin-left:8px;display:none;"></span>
 </nav>
 </div>
+<script>
+function runNow() {
+  const btn = document.getElementById('runNowBtn');
+  const status = document.getElementById('runStatus');
+  btn.disabled = true;
+  btn.textContent = 'Running...';
+  status.style.display = 'inline';
+  status.textContent = 'Collecting opportunities...';
+  fetch('/trigger-collect', { method: 'POST' })
+    .then(r => r.json())
+    .then(d => {
+      status.textContent = d.message;
+      btn.textContent = 'Run Now';
+      btn.disabled = false;
+      setTimeout(() => { status.style.display = 'none'; }, 8000);
+    })
+    .catch(() => {
+      status.textContent = 'Error triggering collector.';
+      btn.textContent = 'Run Now';
+      btn.disabled = false;
+    });
+}
+</script>
 <div class="container">
 <div class="grid">
   <div class="card">
