@@ -1,6 +1,5 @@
 import sys
 import os
-import time
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from src.config_manager import config_manager
@@ -8,7 +7,6 @@ from src.utils.db import init_db, Opportunity
 from src.utils.logger import setup_logger
 from src.core.llm_summarizer import llm_summarizer
 from src.core.notification_service import notification_service
-from src.core.scheduler import JobScheduler
 
 from src.agents.internship_agent import InternshipAgent
 from src.agents.job_agent import JobAgent
@@ -43,7 +41,6 @@ class CareerAgentApp:
             AINewsAgent(),
             GitHubAgent(),
         ]
-        self.scheduler = JobScheduler()
 
     def process_opportunities(self):
         logger.info("Starting opportunity processing cycle...")
@@ -92,16 +89,7 @@ class CareerAgentApp:
     def run(self):
         logger.info("AI Career Operating System started.")
         self.process_opportunities()
-
-        interval = config_manager.get("CHECK_INTERVAL_MINUTES", 60)
-        self.scheduler.add_job(self.process_opportunities, interval)
-        self.scheduler.start()
-
-        try:
-            while True:
-                time.sleep(1)
-        except KeyboardInterrupt:
-            logger.info("Shutting down...")
+        logger.info("Run complete. Exiting.")
 
 if __name__ == "__main__":
     app = CareerAgentApp()
